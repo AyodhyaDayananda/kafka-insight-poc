@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kafka Insight POC (AI Agent)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    #chat {
+      width: 100%;
+      height: 400px;
+      overflow-y: auto;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    .entry {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .user {
+      font-weight: bold;
+      color: #333;
+    }
+    .ai-block {
+      margin-top: 8px;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .result {
+      margin-top: 6px;
+      padding: 8px;
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      white-space: pre-wrap;
+    }
+    .error {
+      margin-top: 6px;
+      padding: 8px;
+      background: #ffebee;
+      border-left: 4px solid #f44336;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>Kafka Insight POC (AI Agent)</h2>
+  <div id="chat"></div>
+
+  <input id="userInput" type="text" placeholder="Ask about Kafka (e.g., List topics, retention of test-topic)" style="width:80%; padding:10px;">
+  <button onclick="sendMessage()">Ask</button>
+
+  <script>
+    const chat = document.getElementById('chat');
+
+    async function sendMessage() {
+      const message = document.getElementById('userInput').value.trim();
+      if (!message) return;
+
+      chat.innerHTML += `<div class="entry"><div class="user">You:</div> ${message}</div>`;
+      document.getElementById('userInput').value = '';
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/kafka", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: message })
+        });
+
+        const data = await response.json();
+        let html = `<div class="ai-block">`;
+
+        if (data.prompt) {
+          html += `<div><strong>Prompt:</strong> ${data.prompt}</div>`;
+        }
+
+        if (data.executed_code) {
+          html += `<div><strong>Generated Code:</strong><pre>${data.executed_code}</pre></div>`;
+        }
+
+        if (data.result) {
+          html += `<div class="result"><strong>Result:</strong><br>${data.result}</div>`;
+        }
+
+        if (data.detail) {
+          html += `<div class="error"><strong>Error:</strong><br>${data.detail}</div>`;
+        }
+
+        html += `</div>`;
+        chat.innerHTML += `<div class="entry"><div class="user">AI:</div>${html}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+
+      } catch (err) {
+        chat.innerHTML += `<div class="entry"><div class="user">AI:</div>
+          <div class="error"><strong>Error:</strong><br>Failed to connect to backend: ${err}</div></div>`;
+      }
+    }
+  </script>
+</body>
+</html>
