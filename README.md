@@ -1,6 +1,6 @@
 # Conversational Kafka with Azure OpenAI – POC
 
-#[Kafka Insight POC](assets/arch.png)
+![Kafka Insight POC](assets/arch.png)
 
 ## 🚀 Overview
 This repository contains a proof-of-concept that integrates **Apache Kafka** with **Azure OpenAI** to provide a **conversational interface** for Kafka operations.  
